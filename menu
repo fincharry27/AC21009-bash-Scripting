@@ -1,0 +1,21 @@
+#!/bin/bash
+echo "Please select an option"
+
+select action in Access_file_repository View_files File_logins Create_log quit
+do
+case $action in
+	Access_file_repository)
+				;;
+	View_files)
+		;;
+	File_logins)
+		;;
+	Create_log)
+		;;
+	quit)
+	break
+	;;
+esac
+done
+
+
