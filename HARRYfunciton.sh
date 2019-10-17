@@ -1,33 +1,48 @@
 
-userName=$(whoami)
+username=$(whoami)
+echo "---Avaliable Files---"
+#Figure out a way to only show .txt files? or csv or whatever the files we need to be able to edit are
+ls
+echo "Enter the file name of the file you wish to edit: "
+read fileName
 
-echo "File name: "
-read file
+if [ -f $fileName ]; then
 
-if [ -f $file ]; then
-
-    if [ -d tempChange ]; then
-        cp $file tempChange
+    #Also figure out how to store these, maybe in directories with the date / time as their name?
+    if [ -d olderVersion ]; then
+        cp $fileName olderVersion
     else
-        mkdir tempChange && cp $file tempChange
+        mkdir olderVersion && cp $fileName olderVersion
     fi
 
-    nano $file
+    mkdir filesInUse && mv $fileName filesInUse && cd filesInUse && nano $fileName
     while [ -n "`pgrep nano`"  ]; do :; done
+    mv $fileName .. && cd .. && rmdir filesInUse
 
-    if [ -d log ]; then
-        diff -c $file tempChange/$file > log/"${file}-${username}-edit-x"
+    #Figure out a better way to name these backups to distinguish them more
+    if [ -d backups ]; then
+        cp $fileName backups/"${fileName}-backup"
     else
-        mkdir log && diff -c $file tempChange/$file > log/"${file}-${username}-edit-x"
+        mkdir backups && cp $fileName backups/"${fileName}-backup"
     fi
-    
-    echo "Complete"
+
+    #Theres aslo probably a better way of formatting these logs, figure this out
+    if [ -d log ]; then
+        echo "---EDIT---" >> log/"${fileName}-${username}-edit-log"
+        diff -c $fileName olderVersion/$fileName >> log/"${fileName}-${username}-edit-log"
+    else
+        echo "---EDIT---" >> log/"${fileName}-${username}-edit-log"
+        mkdir log && diff -c $fileName olderVersion/$fileName >> log/"${fileName}-${username}-edit-log"
+    fi
+
+    echo "Please add a comment for your entry (leave blank if not): "
+    read comment
+    echo "---${username}'s edit comment---">>log/"${fileName}-${username}-edit-log" && echo $comment >> log/"${fileName}-${username}-edit-log"
 
 else
-    echo "File does not exist"
+    echo "File does not exist, would you like to create it? (y/n): "
+
+    #Implement the creation of new files inside the edit function?
 fi
-
-
-
 
 
