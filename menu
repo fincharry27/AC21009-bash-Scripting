@@ -1,21 +1,179 @@
 #!/bin/bash
+
+#Function to display the main menu
+displayMenu ()
+{
 echo "Please select an option"
 
-select action in Access_file_repository View_files File_logins Create_log quit
+select action in Create_repository Access_repoistory Access_log quit
 do
 case $action in
-	Access_file_repository)
-				;;
-	View_files)
-		;;
-	File_logins)
-		;;
-	Create_log)
-		;;
+	#Once selected calls the createRepository function
+	Create_repository)
+			
+			createRepository
+			;;			
+	#Once selected calls the accessRepository function 	
+	Access_repoistory)
+			
+			accessRepository
+			;;
+	Access_log)
+	
+			accessLog
+			;;
 	quit)
-	break
+	exit
 	;;
 esac
 done
+
+}
+
+#Function to create repository
+createRepository () 
+{
+	
+	echo "Please enter a name for the repository"
+	#Gets the input from the user
+	read -p 'repository name: ' name
+	#Ensure the repository name is correct
+	echo "$name, is this correct?"
+	read -p 'y/n: ' uinput
+		
+	#If the user types y then a new repository is created using the name inputted by the user with access to all
+	if [ $uinput = y ];
+	then
+		mkdir $name
+		chmod 777 $name
+	
+	#If the user types n then the user will be able to change the name of the repository 
+	elif [ $uinput = n ];
+	then
+		read -p 'repository name: ' name
+		
+	#If the user types something else then the user will be asked to input y or n
+	else 
+		read -p 'Invalid input, please type in y or n: ' uinput	
+			
+	fi
+	#After repository is created take the user back to the menu 
+	displayMenu
+}
+
+#Function to access repository 
+accessRepository ()
+{
+	#Get the repository name from the user
+	read -p 'Enter the repository name: ' rname
+	#If it matches with a directory then display the contents 
+	if [ -d $rname ];
+	then
+		cd $rname 
+		ls -l
+	#Else re-enter a repository name 
+	else 
+		echo "$rname does not exist, please try again "
+		read rname
+	fi
+	
+	#Tells the user what features they can perform
+	echo "Pick an option: c: create, e: edit, d: delete "
+	read uinput 
+
+	
+	if [ $uinput = c ]; 
+	then
+		read -p 'Please enter a name for the file: ' filename
+		#creates a new file with the name requested by the user
+		touch $filename 
+
+ 	fi
+	
+	#Your code is here
+	if [ $uinput = e ]; then
+		
+		username=$(whoami)
+		echo "---Avaliable Files---"
+		#Figure out a way to only show .txt files? or csv or whatever the files we need to be able to edit are
+		ls
+		echo "Enter the file name of the file you wish to edit: "
+		read fileName
+
+		if [ -f $fileName ]; then
+
+    		#Also figure out how to store these, maybe in directories with the date / time as their name?
+    			if [ -d olderVersion ]; then
+        			cp $fileName olderVersion
+    			else
+        			mkdir olderVersion && cp $fileName olderVersion
+    		fi
+
+    		mkdir filesInUse && mv $fileName filesInUse && cd filesInUse && nano $fileName
+    		while [ -n "`pgrep nano`"  ]; do :; done
+    		mv $fileName .. && cd .. && rmdir filesInUse
+
+    			#Figure out a better way to name these backups to distinguish them more
+    		if [ -d backups ]; then
+        		cp $fileName backups/"${fileName}-backup"
+    		else
+        		mkdir backups && cp $fileName backups/"${fileName}-backup"
+    		fi
+
+    	echo "Complete"
+	
+
+    	#Theres aslo probably a better way of formatting these logs, figure this out
+    		if [ -d log ]; then
+        		echo "---EDIT---" >> log/"${fileName}-${username}-edit-log"
+        		diff -c $fileName olderVersion/$fileName >> log/"${fileName}-${username}-edit-log"
+    		else
+        		echo "---EDIT---" >> log/"${fileName}-${username}-edit-log"
+        		mkdir log && diff -c $fileName olderVersion/$fileName >> log/"${fileName}-${username}-edit-log"
+    		fi
+
+    		echo "Please add a comment for your entry (leave blank if not): "
+    		read comment
+    		echo "---${username}'s edit comment---">>log/"${fileName}-${username}-edit-log" && echo $comment >> log/"${fileName}-${username}-edit-log"
+
+		else
+    		echo "File does not exist, would you like to create it? (y/n): "
+
+    #Implement the creation of new files inside the edit function?
+		fi
+	fi
+	
+	displayMenu
+}
+
+accessLog ()
+{
+	#Get the repository name from the user
+	read -p 'Enter the repository name: ' rname
+	#If it matches with a directory then display the contents 
+	if [ -d $rname ];
+	then
+		cd $rname/log 
+		ls -l
+
+	#Else re-enter a repository name 
+	else 
+		echo "$rname does not exist, please try again "
+		read rname
+	fi
+	
+	#Get filename from user 
+	echo "Please enter in the log file you wish to read "
+	read filename
+
+	#Display file contents 
+	cat $filename
+
+	displayMenu
+	
+}
+
+displayMenu
+
 
 
