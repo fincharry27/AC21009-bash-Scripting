@@ -203,6 +203,28 @@ accessRepository ()
 	    fi
 	#fi
 	fi
+
+	if [ $uinput = d ]; then
+		echo "Which file would you like to remove: "
+		read toDelete
+		if [ -f toDelete ]; then
+			echo "Are you sure you want to delete ${$toDelete}? (y/n): "
+			read decision
+			if [ decision = y ]; then
+				rm $toDelete
+				echo "Succesfully deleted ${toDelete}"
+			elif [ decision = n ]; then
+					echo "${toDelete} remains to see another day"
+			else
+				echo "You dont listen to the rules eh"
+			fi
+			
+		else
+			echo "File does not exist"
+		fi
+		
+		
+	fi
 	
 	displayMenu
 }
